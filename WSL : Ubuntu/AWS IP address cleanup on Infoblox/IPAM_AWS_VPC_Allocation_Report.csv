@@ -1,0 +1,103 @@
+10.128.0.0/14 Region 1 (eu-west-1)
+
+    "10.128.0.0/15","ns3.mediait.ch","Size M","7.0%"
+
+        "10.128.0.0/22","StackId: arn:aws:cloudformation:eu-west-1:079382933451:stack/SC-079382933451-pp-2r3nypdisc5za/82376a40-060e-11ea-b967-02bfe56b0f60 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.4.0/22","StackId: arn:aws:cloudformation:eu-west-1:079382933451:stack/SC-079382933451-pp-5eflmj3xk5yoc/6a0dcfd0-0628-11ea-a5b7-02ccbabe1234 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.8.0/22","StackId: arn:aws:cloudformation:eu-west-1:799022891239:stack/SDWAN/47590940-06fe-11ec-8df7-0231ab2d761d LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.12.0/22","StackId: arn:aws:cloudformation:eu-west-1:090055978113:stack/SC-090055978113-pp-kk2qqgcm2usrq/d3eb0e10-f65d-11ea-8e53-0a4c01d2c5aa LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.16.0/22","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-qr3adh3ysusl2/50809d50-1f22-11ef-a0ff-06a831be3ed5 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.20.0/22","StackId: arn:aws:cloudformation:eu-west-1:108782058603:stack/SC-108782058603-pp-z527mryraprwk/72498f80-ef8f-11ef-a52d-02aec14f9735 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.24.0/22","StackId: arn:aws:cloudformation:eu-west-1:767828754908:stack/SC-767828754908-pp-y3y33uuymtgq6/3facebc0-f9c7-11ef-8f8d-0ab39ce8b5a1 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.28.0/22","StackId: arn:aws:cloudformation:eu-west-1:471744311299:stack/SC-471744311299-pp-pcqllx6q3zuwa/18777ec0-1147-11f0-904e-061c6fcb5fc5 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.128.32.0/22","StackId: arn:aws:cloudformation:eu-west-1:107570341490:stack/SC-107570341490-pp-lpj5xbexgpd54/c806c060-60b8-11f0-9886-0a3205c53415 LogicalResourceId: VpcIpAddressesCustomResource",
+
+    "10.130.0.0/16","ns3.mediait.ch","Size S","14.0%"
+
+        "10.130.0.0/24","StackId: arn:aws:cloudformation:eu-west-1:753953229562:stack/SC-753953229562-pp-p6sdklfnpyx2a/20b352a0-d39d-11e9-8c7e-0a692a24f4a4 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.1.0/24","StackId: arn:aws:cloudformation:eu-west-1:135728408183:stack/SC-135728408183-pp-bpvtq2wbnhclc/9688a1d0-0c5d-11ea-89d2-060f8efab01c LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.2.0/24","StackId: arn:aws:cloudformation:eu-west-1:905876141559:stack/SC-905876141559-pp-bpu5i22yqi6ty/be755a30-217a-11ea-b2f7-0a2e85db59c6 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.3.0/24","StackId: arn:aws:cloudformation:eu-west-1:079382933451:stack/SC-079382933451-pp-3354nugbyc222/4e08b170-ff06-11e9-8602-0a86846a053c LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.4.0/24","StackId: arn:aws:cloudformation:eu-west-1:975869647093:stack/SC-975869647093-pp-uxqfkiletx2ze/cd63eb70-62e2-11ea-b404-06fe77e63de4 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.5.0/24","StackId: arn:aws:cloudformation:eu-west-1:544422817324:stack/SC-544422817324-pp-mex37xr7r2siq/a6e85be0-62e5-11ea-9a12-024980a27cd8 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.6.0/24","StackId: arn:aws:cloudformation:eu-west-1:301892525228:stack/SC-301892525228-pp-ch4ymunl7mxjo/d67945d0-62eb-11ea-88e2-02cedaf7133c LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.7.0/24","StackId: arn:aws:cloudformation:eu-west-1:865624890496:stack/SC-865624890496-pp-pdajuybxu5qau/a4c8e0d0-62f1-11ea-927f-025fc999d9f6 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.8.0/24","StackId: arn:aws:cloudformation:eu-west-1:623213169507:stack/SC-623213169507-pp-obvuc75yhcb4a/034153c0-650b-11ea-ac07-02abe6210ac8 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.9.0/24","StackId: arn:aws:cloudformation:eu-west-1:911453050078:stack/SC-911453050078-pp-asq7u5xwtgs5w/e7541740-73ee-11ea-9fdf-02ac8ce49a7a LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.10.0/24","StackId: arn:aws:cloudformation:eu-west-1:271772249701:stack/SC-271772249701-pp-pa3al62vsdoxk/a1f7d360-9fe2-11ea-a9f4-02bfe56b0f60 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.11.0/24","StackId: arn:aws:cloudformation:eu-west-1:078453322683:stack/SC-078453322683-pp-7bykuc4m7jd2u/11ca7b40-e2b2-11ea-8ded-0a1dada20d7a LogicalResourceId: VpcIpAddressesCustomResource","50.0%"
+        "10.130.12.0/24","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-rqd7dymsdyrxu/eafb5f60-e2b2-11ea-a6d2-02c4fae2d862 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.13.0/24","StackId: arn:aws:cloudformation:eu-west-1:853429921224:stack/SC-853429921224-pp-pfwpb6z7ebuwm/b8993ba0-2d6c-11eb-ab40-0a4132d4caa7 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.14.0/24","StackId: arn:aws:cloudformation:eu-west-1:078453322683:stack/SC-078453322683-pp-v6ho6g462dcp4/fb1989f0-452a-11eb-8843-02ae0fe7ca0d LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.15.0/24","StackId: arn:aws:cloudformation:eu-west-1:411064266612:stack/SC-411064266612-pp-hta73ya5an7yo/c4fc94f0-49c3-11eb-aee9-02832e7883fd LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.16.0/24","StackId: arn:aws:cloudformation:eu-west-1:702942474976:stack/SC-702942474976-pp-evpxkpqy422v2/2278e110-4eb0-11eb-ad87-0a7fc4da8782 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.17.0/24","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-ed73d37rsijbc/26deeb30-97aa-11eb-9be3-0ae9a88ea315 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.18.0/24","StackId: arn:aws:cloudformation:eu-west-1:910220757785:stack/SC-910220757785-pp-tuir5zh23v4g6/6111ac80-0973-11ec-9f8a-06628ab878f9 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.19.0/24","StackId: arn:aws:cloudformation:eu-west-1:350774346140:stack/SC-350774346140-pp-cacn3bixbvxny/bcb71890-e498-11eb-a55e-0a353cf8aabd LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.20.0/24","StackId: arn:aws:cloudformation:eu-west-1:019490601891:stack/SC-019490601891-pp-plo5p2weloktw/bf6740e0-7937-11ec-ad90-02c8538f2843 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.21.0/24","StackId: arn:aws:cloudformation:eu-west-1:144183047489:stack/SC-144183047489-pp-ejsxzyhrb642g/5d12fbd0-9a27-11ec-8a61-02bf933744f1 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.22.0/24","StackId: arn:aws:cloudformation:eu-west-1:133998870989:stack/SC-133998870989-pp-a5qfwrsxgk6je/70c36dc0-ab72-11ec-8f3d-02aa4397177d LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.23.0/24","StackId: arn:aws:cloudformation:eu-west-1:078453322683:stack/SC-078453322683-pp-44vyjbarm3buo/88f021e0-0e73-11ed-8a30-02cb0866e39d LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.24.0/24","StackId: arn:aws:cloudformation:eu-west-1:794296798061:stack/SC-794296798061-pp-imzjccf2wxe3m/04ba2b80-29e6-11ed-bade-0a9ef07f7389 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.25.0/24","StackId: arn:aws:cloudformation:eu-west-1:533174132782:stack/SC-533174132782-pp-xxqezr5zxrzoc/35661070-29ee-11ed-aeb6-06b52efdc57f LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.26.0/24","StackId: arn:aws:cloudformation:eu-west-1:703991429509:stack/SC-703991429509-pp-olw3wklikr3pw/13dd8960-813c-11ed-b84e-02295523a5b3 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.27.0/24","StackId: arn:aws:cloudformation:eu-west-1:328722480406:stack/SC-328722480406-pp-7cmvbo3qcwdki/137cf830-a85f-11ed-8831-06f5ae97bde3 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.28.0/24","StackId: arn:aws:cloudformation:eu-west-1:908101911960:stack/SC-908101911960-pp-vijo47ocl5dqk/61d81890-1a72-11ee-b5d2-0add40a85c13 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.29.0/24","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-knt5cgmbeyeko/d84bee30-3c27-11ee-9ea6-0ae09904d3ef LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.30.0/24","StackId: arn:aws:cloudformation:eu-west-1:562474801279:stack/SC-562474801279-pp-52ophsyx5vzje/780d1020-8d31-11ee-9b90-0a1fd4edd525 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.31.0/24","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-ds47ijo3optx4/a7f2fd80-2198-11ef-8172-0a6ff588ff67 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.32.0/24","StackId: arn:aws:cloudformation:eu-west-1:654654515057:stack/SC-654654515057-pp-bbavfyid3yhva/59690810-27ee-11ef-bd6c-0aa3a1768a43 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.33.0/24","StackId: arn:aws:cloudformation:eu-west-1:026090544750:stack/SC-026090544750-pp-jdp3fll73lyac/ccaac300-6a91-11ef-9eea-0626295d51a3 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.34.0/24","StackId: arn:aws:cloudformation:eu-west-1:329599660537:stack/SC-329599660537-pp-d2vqvtuzrmsau/46671090-0ee3-11f0-8e2c-022f172e9e39 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.130.35.0/24","StackId: arn:aws:cloudformation:eu-west-1:013453632133:stack/SC-013453632133-pp-c3jjwy5obaedy/d89fd610-78db-11f0-87c4-02a09419e4dd LogicalResourceId: VpcIpAddressesCustomResource",
+
+
+    "10.131.0.0/17","ns3.mediait.ch","Size L","0.0%"
+
+    "10.131.128.0/17","ns3.mediait.ch","Size XL","0.0%"
+
+10.136.0.0/14 Region 3 (eu-central-1) 
+
+    "10.136.0.0/15","ns3.mediait.ch","Size M","10.0%",
+
+        "10.136.0.0/22","StackId: arn:aws:cloudformation:eu-central-1:320063451603:stack/SC-320063451603-pp-a6jf3ose5gmtg/4965e090-cd72-11e9-8bf6-0256416c8242 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.4.0/22","StackId: arn:aws:cloudformation:eu-central-1:789431703521:stack/SC-789431703521-pp-dkquh4g4btisi/fdfea2f0-f408-11e9-b5a1-066084ff6f3a LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.8.0/22","StackId: arn:aws:cloudformation:eu-central-1:881267245737:stack/SC-881267245737-pp-ilegp7kck2xr2/21406330-f4d5-11e9-81cb-0a322bcecbc4 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.12.0/22","StackId: arn:aws:cloudformation:eu-central-1:893569739659:stack/SC-893569739659-pp-jsm6e5jpy7dcu/27014a20-f4d8-11e9-b5a1-066084ff6f3a LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.16.0/22","StackId: arn:aws:cloudformation:eu-central-1:893569739659:stack/SC-893569739659-pp-56wa7dhumaz6k/1b381200-f4dd-11e9-a203-0a0e69a2b94e LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.20.0/22","StackId: arn:aws:cloudformation:eu-central-1:706370317738:stack/SC-706370317738-pp-b5nceoppebmw6/e0cc17d0-f64c-11e9-bf3e-0264b9b54242 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.24.0/22","StackId: arn:aws:cloudformation:eu-central-1:495467222175:stack/SC-495467222175-pp-dimpsdyb4vgeu/6d102df0-ffd3-11e9-888d-0a4de0a8f3d8 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.28.0/22","StackId: arn:aws:cloudformation:eu-central-1:269132892972:stack/SC-269132892972-pp-tnplp2glhkgfi/0aa52f90-0f8b-11ea-9feb-02722d612c06 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.32.0/22","StackId: arn:aws:cloudformation:eu-central-1:883535314275:stack/SC-883535314275-pp-qp5s2eiwnmdpi/2d5b0730-1b52-11ea-a158-06a619e5de86 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.36.0/22","StackId: arn:aws:cloudformation:eu-central-1:585856864837:stack/SC-585856864837-pp-linapx2ho4gcs/6354ab10-5325-11ea-8b6d-06a85d409ac4 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.40.0/22","StackId: arn:aws:cloudformation:eu-central-1:810965881435:stack/SC-810965881435-pp-qs5egeqwn6kek/5a3249f0-5df4-11ea-82ac-0a3f741aced4 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.44.0/22","StackId: arn:aws:cloudformation:eu-central-1:165361074946:stack/SC-165361074946-pp-kldrogodbad5o/413edc60-5df9-11ea-9642-06b323d6b6e2 LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.48.0/22","StackId: arn:aws:cloudformation:eu-central-1:013453632133:stack/SC-013453632133-pp-me4mjgmdzyd4g/fbeeefb0-b21c-11ea-aafe-0a233b5d9d4c LogicalResourceId: VpcIpAddressesCustomResource",
+        "10.136.52.0/22","StackId: arn:aws:cloudformation:eu-central-1:209479273692:stack/SC-209479273692-pp-kxa2jnqvsrgbw/8cc4e630-6aaf-11ef-ad50-0a62dacad119 LogicalResourceId: VpcIpAddressesCustomResource",
+
+    "10.138.0.0/16","ns3.mediait.ch","Size S","6.0%",
+
+        "10.138.0.0/24","StackId: arn:aws:cloudformation:eu-central-1:452422222159:stack/SC-452422222159-pp-ytveaf545awg6/1981ca70-5a3e-11ea-82ac-0a3f741aced4 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.1.0/24","StackId: arn:aws:cloudformation:eu-central-1:668273420038:stack/SC-668273420038-pp-3nz3qb2tlr4lu/14861cf0-d470-11e9-9070-025adfcb1154 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.2.0/24","StackId: arn:aws:cloudformation:eu-central-1:090055978113:stack/SC-090055978113-pp-noqsv7miuh2sk/d931de70-48c6-11ea-a13f-0a75b60f3c60 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.3.0/24","StackId: arn:aws:cloudformation:eu-central-1:626293586879:stack/SC-626293586879-pp-uzllwad2hxg4u/5915c0b0-c51e-11ea-ba1d-064768627800 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.4.0/24","StackId: arn:aws:cloudformation:eu-central-1:626293586879:stack/SC-626293586879-pp-rzl5usojnxdxy/e247fa10-5ffb-11eb-a35b-0a8760f7d236 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.5.0/24","StackId: arn:aws:cloudformation:eu-central-1:078453322683:stack/SC-078453322683-pp-wf5l3w7zrtip6/18e56ed0-28d0-11eb-9abc-0ab7fff4b680 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.6.0/24","StackId: arn:aws:cloudformation:eu-central-1:279065545731:stack/SC-279065545731-pp-ucbsqu7hzqpa2/b6ab6590-443a-11eb-bca5-0a8760f7d236 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.7.0/24","StackId: arn:aws:cloudformation:eu-central-1:073971890859:stack/SC-073971890859-pp-acgxv7yufgkug/a926aa30-654e-11eb-9296-0207ca607726 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.8.0/24","StackId: arn:aws:cloudformation:eu-central-1:350774346140:stack/SC-350774346140-pp-237kmvtf5rj6c/85069c10-906d-11eb-8577-0a35fc2af642 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.9.0/24","StackId: arn:aws:cloudformation:eu-central-1:623213169507:stack/SC-623213169507-pp-h5m2gztdvvruq/700b2020-155a-11ec-92b5-06a310736f22 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.10.0/24","StackId: arn:aws:cloudformation:eu-central-1:925651263656:stack/SC-925651263656-pp-pxntptfjvaami/29d56800-b1a3-11ec-ab61-06fc9a8c5d32 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.11.0/24","StackId: arn:aws:cloudformation:eu-central-1:911453050078:stack/SC-911453050078-pp-paf5rovxnik66/89d61d20-2138-11ee-b7e6-0abb8d8fa83e LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.12.0/24","StackId: arn:aws:cloudformation:eu-central-1:058264297480:stack/SC-058264297480-pp-dqcbpuajf4ggi/949e7a30-f712-11ee-972a-0ac4d3fa9f79 LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.13.0/24","StackId: arn:aws:cloudformation:eu-central-1:284342531743:stack/SC-284342531743-pp-bnjj6g4565brq/b9bbca90-f715-11ee-92ba-06cc061aaa2b LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.14.0/24","StackId: arn:aws:cloudformation:eu-central-1:767397808304:stack/SC-767397808304-pp-dm6fhccokegk6/e4526010-33ac-11ef-af7c-0a30d02d34ef LogicalResourceId: VpcIpAddressesCustomResource"
+        "10.138.15.0/24","StackId: arn:aws:cloudformation:eu-central-1:476222600614:stack/SC-476222600614-pp-basry6u2nblha/efe69090-49c3-11ef-8166-062d4ab526a9 LogicalResourceId: VpcIpAddressesCustomResource"
+
+
+    "10.139.0.0/17","ns3.mediait.ch","Size L","0.0%",
+    
+    "10.139.128.0/17","ns3.mediait.ch","Size XL","0.0%",
+
+
+
