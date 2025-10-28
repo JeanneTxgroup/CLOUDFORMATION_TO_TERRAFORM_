@@ -1,0 +1,94 @@
+# === Liste des ressources CloudFormation detectees dans ClientVPC.yaml  ===
+Nom logique                              -> Type CloudFormation                      -> Type Terraform
+----------------------------------------------------------------------------------------------------
+VpcIpAddressesCustomResource             -> Custom::VpcIpAddresses                   -> aws_UNKNOWN
+Vpc                                      -> AWS::EC2::VPC                            -> aws_vpc
+ScalablePlatformCIDRblock                -> AWS::EC2::VPCCidrBlock                   -> aws_UNKNOWN
+PublicSubnet1                            -> AWS::EC2::Subnet                         -> aws_subnet
+PublicSubnet2                            -> AWS::EC2::Subnet                         -> aws_subnet
+PublicSubnet3                            -> AWS::EC2::Subnet                         -> aws_subnet
+PrivateSubnet1                           -> AWS::EC2::Subnet                         -> aws_subnet
+PrivateSubnet2                           -> AWS::EC2::Subnet                         -> aws_subnet
+PrivateSubnet3                           -> AWS::EC2::Subnet                         -> aws_subnet
+IntraVpcSubnet1                          -> AWS::EC2::Subnet                         -> aws_subnet
+IntraVpcSubnet2                          -> AWS::EC2::Subnet                         -> aws_subnet
+IntraVpcSubnet3                          -> AWS::EC2::Subnet                         -> aws_subnet
+ScalablePlatformSubnet1                  -> AWS::EC2::Subnet                         -> aws_subnet
+ScalablePlatformSubnet2                  -> AWS::EC2::Subnet                         -> aws_subnet
+ScalablePlatformSubnet3                  -> AWS::EC2::Subnet                         -> aws_subnet
+InternetGateway                          -> AWS::EC2::InternetGateway                -> aws_igw
+AttachGateway                            -> AWS::EC2::VPCGatewayAttachment           -> aws_igw
+AttachmentToTransitGateway               -> AWS::EC2::TransitGatewayAttachment       -> aws_transit_gateway
+TGWattachementCustomResource             -> Custom::NewTGWAttachement                -> aws_UNKNOWN
+NatGatewayEip                            -> AWS::EC2::EIP                            -> aws_eip
+NatGatewayEip2                           -> AWS::EC2::EIP                            -> aws_eip
+NatGatewayEip3                           -> AWS::EC2::EIP                            -> aws_eip
+NatGateway                               -> AWS::EC2::NatGateway                     -> aws_nat
+NatGateway2                              -> AWS::EC2::NatGateway                     -> aws_nat
+NatGateway3                              -> AWS::EC2::NatGateway                     -> aws_nat
+RouteTablePublic                         -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTablePrivate                        -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTablePrivate2                       -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTablePrivate3                       -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTableIntraVpc                       -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTableIntraVpc2                      -> AWS::EC2::RouteTable                     -> aws_route_table
+RouteTableIntraVpc3                      -> AWS::EC2::RouteTable                     -> aws_route_table
+InternetRoutePublic                      -> AWS::EC2::Route                          -> aws_route_table
+RoutePublicTGW1                          -> AWS::EC2::Route                          -> aws_route_table
+RoutePublicTGW2                          -> AWS::EC2::Route                          -> aws_route_table
+RoutePublicTGW3                          -> AWS::EC2::Route                          -> aws_route_table
+RoutePublicTGW4                          -> AWS::EC2::Route                          -> aws_route_table
+DmzRoutePublic                           -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivateTGW1                         -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivateTGW2                         -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivateTGW3                         -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivateTGW4                         -> AWS::EC2::Route                          -> aws_route_table
+DmzRoutePrivate                          -> AWS::EC2::Route                          -> aws_route_table
+NatRoutePrivate                          -> AWS::EC2::Route                          -> aws_route_table
+InternetRouteIntraVpc                    -> AWS::EC2::Route                          -> aws_route_table
+SubnetRouteTableAssociationScalablePlatformSubnet1 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationScalablePlatformSubnet2 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationScalablePlatformSubnet3 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+RoutePrivate2TGW1                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate2TGW2                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate2TGW3                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate2TGW4                        -> AWS::EC2::Route                          -> aws_route_table
+DmzRoutePrivate2                         -> AWS::EC2::Route                          -> aws_route_table
+NatRoutePrivate2                         -> AWS::EC2::Route                          -> aws_route_table
+InternetRouteIntraVpc2                   -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate3TGW1                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate3TGW2                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate3TGW3                        -> AWS::EC2::Route                          -> aws_route_table
+RoutePrivate3TGW4                        -> AWS::EC2::Route                          -> aws_route_table
+DmzRoutePrivate3                         -> AWS::EC2::Route                          -> aws_route_table
+NatRoutePrivate3                         -> AWS::EC2::Route                          -> aws_route_table
+InternetRouteIntraVpc3                   -> AWS::EC2::Route                          -> aws_route_table
+SubnetRouteTableAssociationPublicSubnet1 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationPublicSubnet2 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationPublicSubnet3 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationPrivateSubnet1 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationPrivateSubnet2 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationPrivateSubnet3 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationIntraVpcSubnet1 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationIntraVpcSubnet2 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+SubnetRouteTableAssociationIntraVpcSubnet3 -> AWS::EC2::SubnetRouteTableAssociation    -> aws_route_table
+MediaItResolverRuleAssociation           -> AWS::Route53Resolver::ResolverRuleAssociation -> aws_UNKNOWN
+S3Endpoint                               -> AWS::EC2::VPCEndpoint                    -> aws_vpc_endpoint
+
+# === Services Terraformer detectes ===
+eip
+igw
+nat
+route
+subnet
+transit
+vpc
+
+# === Types CFN non reconnus ===
+AWS::EC2::VPCCidrBlock
+AWS::Route53Resolver::ResolverRuleAssociation
+Custom::NewTGWAttachement
+Custom::VpcIpAddresses
+
+# === Commande Terraformer Import ===
+terraformer import aws --resources eip,igw,nat,route,subnet,transit,vpc

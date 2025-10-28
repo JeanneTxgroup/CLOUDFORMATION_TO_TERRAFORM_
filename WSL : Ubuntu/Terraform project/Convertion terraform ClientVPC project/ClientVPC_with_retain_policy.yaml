@@ -1,0 +1,1135 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setup a VPC with private, public and IntraVpc subnets in three AZs. Includes one NAT- and one Internet-Gateway. Optional Transit Gateway attachement and custom features.
+
+Parameters:
+
+  VpcSize:
+    Type: String
+    Default: "S"
+    Description: Select the size of your VPC.
+    AllowedValues: 
+      - "S"
+      - "M"
+      - "L"
+      - "XL"
+      - "S2"
+      - "M2"
+      - "L2"
+      - "XL2"      
+     
+  ValidationToken:
+    Type: String
+    Description: "If you select a VPC size other than S or S2, you need to request a token from Network Services first (network@tamedia.ch) providing the following details: Requirement for bigger VPCs (the number of needed IP addresses), the region to deploy in, your account ID and the desired VPC size."
+
+  ScalablePlatformSubnets:
+    Type: String
+    Default: "no"
+    Description: "Do you need to deploy additional private subnets for a scalable platform like f. ex. Kubernetes (yes/NO)"
+    AllowedValues: 
+      - "yes"
+      - "no"
+    ConstraintDescription: Value must be either "yes" or "no".
+
+  ConnectToCentralRouter:
+    Type: String
+    Default: "yes"
+    Description: "Do you need access to other accounts, Corp shared services or VPN connections? (YES/no)"
+    AllowedValues: 
+      - "yes"
+      - "no"
+    ConstraintDescription: Value must be either "yes" or "no".
+
+  UseInternalDNS:
+    Type: String
+    Description: Use internal DNS servers for the mediait.ch (yes/NO)
+    Default: "no"
+    AllowedValues: 
+      - "yes"
+      - "no"
+    ConstraintDescription: Value must be either "yes" or "no".
+
+  PerAzNatGateways:
+    Type: String
+    Default: "yes"
+    Description: Do you need an highly available NAT gateway (YES/no) 
+    AllowedValues: 
+      - "yes"
+      - "no"
+    ConstraintDescription: Value must be either "yes" or "no".
+
+  UseS3VpcEndpoint:
+    Type: String
+    Default: "yes"
+    Description: Do you need a S3 VPC endpoint  (yes/NO)
+    AllowedValues: 
+      - "yes"
+      - "no"
+    ConstraintDescription: Value must be either "yes" or "no".
+
+  CustomImplementationTag:
+    Type: String
+    Default: ""
+    Description: "Custom ID provided by Tamedia IT for specific implementation, if any"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: { default: Vpc relatives }
+        Parameters:
+          - VpcSize
+          - ValidationToken
+          - ScalablePlatformSubnets
+      - Label: { default: AWS Services }
+        Parameters:
+          - PerAzNatGateways    
+          - UseS3VpcEndpoint    
+      - Label: { default: Central Services }
+        Parameters:
+          - ConnectToCentralRouter
+          - UseInternalDNS
+      - Label: { default: Customized implementations }
+        Parameters:
+          - CustomImplementationTag
+
+    ParameterLabels:
+      VpcSize:
+        default: Size of the VPC
+      ValidationToken:
+        default: Token for M, L and XL sized VPC
+      ScalablePlatformSubnets:
+        default: Add additional private networks for a scalable platform (like Kubernetes)
+      PerAzNatGateways:
+        default: One NAT gateway per AZ to get HA
+      UseS3VpcEndpoint:
+        default: S3 VPC Endpoint lower data transfer total price by allowing internal connections to S3
+      ConnectToCentralRouter:
+        default: Connect to central router (Transit Gateway)
+      UseInternalDNS:
+        default: Use internal DNS servers to resolve mediait.ch records
+      CustomImplementationTag:
+        default: Customized implemetation Tag
+
+Conditions:
+  CreateTGWAttachement: !Equals [ !Ref ConnectToCentralRouter, "yes" ]
+  CreateIntraVpc: !Not [ !Or [ !Equals [ !Ref VpcSize, "S"  ], !Equals [ !Ref VpcSize, "S2" ] ] ] 
+  CreateScalablePlatformSubnets: !Equals [ !Ref ScalablePlatformSubnets, "yes" ]
+  CreatePerAzNatGateways: !Equals [ !Ref PerAzNatGateways, "yes" ]
+  CreateTGWAttachementAndPerAzNatGateways: !And [ !Equals [ !Ref ConnectToCentralRouter, "yes" ], !Equals [ !Ref PerAzNatGateways, "yes" ] ]
+  AssociateMediaItResolverRule: !Equals [ !Ref UseInternalDNS, "yes" ]
+  CreateIntraVpcPerAzNatGatewaysRoutes: !And [ !Not [ !Equals [ !Ref VpcSize, "S" ] ], !Equals [ !Ref PerAzNatGateways, "yes" ] ]
+  CreateS3VpcEndpoint: !Equals [ !Ref UseS3VpcEndpoint, "yes" ]
+
+Mappings: 
+  RegionMap: 
+    eu-west-1: 
+      "TransitGatewayId": "tgw-009829a53d1bc69b8"
+      "Az1": "eu-west-1a"
+      "Az2": "eu-west-1b"
+      "Az3": "eu-west-1c"
+      "ClientAttachmentSNSARN": "arn:aws:sns:eu-west-1:733626620836:ClientAttachmentCustomResource"
+
+    eu-central-1: 
+      "TransitGatewayId": "tgw-09b008f794dcaf554"
+      "Az1": "eu-central-1a"
+      "Az2": "eu-central-1b"
+      "Az3": "eu-central-1c"
+      "ClientAttachmentSNSARN": "arn:aws:sns:eu-central-1:733626620836:ClientAttachmentCustomResource"
+
+Resources:
+
+# Create the VPCIpAddresses
+
+  VpcIpAddressesCustomResource:
+    Type: Custom::VpcIpAddresses
+    DeletionPolicy: Retain
+    Properties: 
+      ServiceToken: !Sub arn:aws:sns:${AWS::Region}:733626620836:VpcIpAddressesCustomResource
+      VpcSize: !Ref VpcSize
+      Token: !Ref ValidationToken
+
+# Setup the main Vpc component
+
+  Vpc:
+    Type: AWS::EC2::VPC
+    DeletionPolicy: Retain
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputVpcCidrBlock
+      Tags:
+      - Key: Name
+        Value: SC-VPC
+
+# Add additional cidr block for scalable plateform subnet, if required.
+  ScalablePlatformCIDRblock:
+    Type: AWS::EC2::VPCCidrBlock
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    Properties:
+      CidrBlock: 10.200.0.0/16
+      VpcId: !Ref Vpc
+
+# Setup the primary public subnet
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az1]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz1Public
+      # AssignIpv6AddressOnCreation: true
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PublicSubnet1
+
+# Setup the secondary public subnet
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az2]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz2Public
+      # AssignIpv6AddressOnCreation: true
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PublicSubnet2
+
+# Setup the third public subnet
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az3]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz3Public
+      # AssignIpv6AddressOnCreation: true
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PublicSubnet3
+
+# Setup the primary private subnet
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az1]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz1Private
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PrivateSubnet1
+
+# Setup the secondary private subnet
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az2]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz2Private
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PrivateSubnet2
+
+# Setup the third private subnet
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az3]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz3Private
+      Tags:
+        - Key: Name
+          Value: SC-VPC-PrivateSubnet3
+
+# Setup the primary intra subnet
+
+  IntraVpcSubnet1:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az1]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz1IntraVpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpcSubnet1
+
+# Setup the secondary intra subnet
+
+  IntraVpcSubnet2:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az2]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz2IntraVpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpcSubnet2
+
+# Setup the third intra subnet
+
+  IntraVpcSubnet3:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az3]
+      VpcId: !Ref Vpc
+      CidrBlock: !GetAtt VpcIpAddressesCustomResource.outputAz3IntraVpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpcSubnet3
+
+# Setup the primary scalable platform subnet
+
+  ScalablePlatformSubnet1:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    DependsOn: ScalablePlatformCIDRblock
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az1]
+      VpcId: !Ref Vpc
+      CidrBlock: "10.200.0.0/20"
+      Tags:
+        - Key: Name
+          Value: SC-VPC-ScalablePlatformSubnet1
+
+# Setup the secondary scalable platform subnet
+
+  ScalablePlatformSubnet2:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    DependsOn: ScalablePlatformCIDRblock
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az2]
+      VpcId: !Ref Vpc
+      CidrBlock: "10.200.16.0/20"
+      Tags:
+        - Key: Name
+          Value: SC-VPC-ScalablePlatformSubnet2
+
+# Setup the third scalable platform subnet
+
+  ScalablePlatformSubnet3:
+    Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    DependsOn: ScalablePlatformCIDRblock
+    Properties:
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", Az3]
+      VpcId: !Ref Vpc
+      CidrBlock: "10.200.32.0/20"
+      Tags:
+        - Key: Name
+          Value: SC-VPC-ScalablePlatformSubnet3
+
+# Setup the internet gateway
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DeletionPolicy: Retain
+    Properties:
+     Tags:
+       - Key: Name
+         Value: SC-VPC-InternetGateway
+
+# Attach the internet gateway to the Vpc
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DeletionPolicy: Retain
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+  
+# Attach VPC to the global tamedia corp transit gateway
+
+  AttachmentToTransitGateway:
+    Condition: CreateTGWAttachement
+    Type: AWS::EC2::TransitGatewayAttachment
+    DeletionPolicy: Retain
+    Properties: 
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::AccountId}-AttachToTransitGateway
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+      VpcId: !Ref Vpc
+  
+# Call lambda for the required additionnal actions on the TGW attachment
+
+  TGWattachementCustomResource:
+    Type: Custom::NewTGWAttachement
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    Properties: 
+      ServiceToken: !FindInMap [RegionMap, !Ref "AWS::Region", ClientAttachmentSNSARN]
+      # Region: !Ref "AWS::Region"
+      TransitGatewayAttachmentId: !Ref AttachmentToTransitGateway
+      CustomImplementationTag: !Ref CustomImplementationTag
+      VpcCidrBlock: !GetAtt VpcIpAddressesCustomResource.outputVpcCidrBlock
+
+# Create NAT gateways
+
+  NatGatewayEip:
+    Type: AWS::EC2::EIP
+    DeletionPolicy: Retain
+    Properties:
+      Domain: vpc
+
+  NatGatewayEip2:
+    Condition: CreatePerAzNatGateways
+    Type: AWS::EC2::EIP
+    DeletionPolicy: Retain
+    Properties:
+      Domain: vpc
+
+  NatGatewayEip3:
+    Condition: CreatePerAzNatGateways
+    Type: AWS::EC2::EIP
+    DeletionPolicy: Retain
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    DeletionPolicy: Retain
+    DependsOn: AttachGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEip.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: SC-VPC-NatGateway
+
+  NatGateway2:
+    Condition: CreatePerAzNatGateways
+    Type: AWS::EC2::NatGateway
+    DeletionPolicy: Retain
+    DependsOn: AttachGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEip2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: SC-VPC-NatGateway2
+
+  NatGateway3:
+    Condition: CreatePerAzNatGateways
+    Type: AWS::EC2::NatGateway
+    DeletionPolicy: Retain
+    DependsOn: AttachGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEip3.AllocationId
+      SubnetId: !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: SC-VPC-NatGateway3
+
+# Setup a public route table
+
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-Public
+
+# Setup the primary private route table
+
+  RouteTablePrivate:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-Private
+
+# Setup the additionnal private route tables for NAT gatway HA if required
+
+  RouteTablePrivate2:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-Private2
+
+  RouteTablePrivate3:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-Private3
+
+# Setup the primary intra VPC route table
+
+  RouteTableIntraVpc:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpc
+
+  RouteTableIntraVpc2:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpcPerAzNatGatewaysRoutes
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpc2
+
+  RouteTableIntraVpc3:
+    Type: AWS::EC2::RouteTable
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpcPerAzNatGatewaysRoutes
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SC-VPC-IntraVpc3
+
+# Add routes for public subnets
+
+  InternetRoutePublic:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  RoutePublicTGW1:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 145.234.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePublicTGW2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePublicTGW3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 172.16.0.0/12
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePublicTGW4:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 192.168.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  DmzRoutePublic:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: 145.234.240.0/22
+      GatewayId: !Ref InternetGateway
+
+# Add routes for private subnets
+
+  RoutePrivateTGW1:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 145.234.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivateTGW2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivateTGW3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 172.16.0.0/12
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivateTGW4:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachement
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 192.168.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  DmzRoutePrivate:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 145.234.240.0/22
+      NatGatewayId: !Ref NatGateway
+
+  NatRoutePrivate:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  InternetRouteIntraVpc:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTableIntraVpc
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+# Associate the primary Private route table to the first scalable platform subnet
+
+  SubnetRouteTableAssociationScalablePlatformSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    Properties:
+      SubnetId: !Ref ScalablePlatformSubnet1
+      RouteTableId: !Ref RouteTablePrivate
+
+# Associate the secondary Private route table to the the second scalable platform subnet
+
+  SubnetRouteTableAssociationScalablePlatformSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    Properties:
+      SubnetId: !Ref ScalablePlatformSubnet2
+      RouteTableId: !If [ CreatePerAzNatGateways , !Ref RouteTablePrivate2 , !Ref RouteTablePrivate ]
+
+# Associate the tertiary Private route table to the the third scalable platform subnet
+
+  SubnetRouteTableAssociationScalablePlatformSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateScalablePlatformSubnets
+    Properties:
+      SubnetId: !Ref ScalablePlatformSubnet3
+      RouteTableId: !If [ CreatePerAzNatGateways , !Ref RouteTablePrivate3 , !Ref RouteTablePrivate ]
+
+# Extra routes when implementing HA NAT getways
+
+  RoutePrivate2TGW1:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 145.234.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate2TGW2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate2TGW3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 172.16.0.0/12
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate2TGW4:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 192.168.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  DmzRoutePrivate2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 145.234.240.0/22
+      NatGatewayId: !Ref NatGateway2
+
+  NatRoutePrivate2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+
+  InternetRouteIntraVpc2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpcPerAzNatGatewaysRoutes
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTableIntraVpc2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+
+  RoutePrivate3TGW1:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 145.234.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate3TGW2:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 10.0.0.0/8
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate3TGW3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 172.16.0.0/12
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+
+  RoutePrivate3TGW4:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateTGWAttachementAndPerAzNatGateways
+    DependsOn: AttachmentToTransitGateway
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 192.168.0.0/16
+      TransitGatewayId: !FindInMap [RegionMap, !Ref "AWS::Region", TransitGatewayId]
+      
+  DmzRoutePrivate3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 145.234.240.0/22
+      NatGatewayId: !Ref NatGateway3
+
+  NatRoutePrivate3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreatePerAzNatGateways
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3
+
+  InternetRouteIntraVpc3:
+    Type: AWS::EC2::Route
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpcPerAzNatGatewaysRoutes
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTableIntraVpc3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3
+
+# Associate the Public route table to the the first public subnet
+
+  SubnetRouteTableAssociationPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref RouteTablePublic
+
+# Associate the Public route table to the the second public subnet
+
+  SubnetRouteTableAssociationPublicSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref RouteTablePublic
+
+# Associate the Public route table to the the third public subnet
+
+  SubnetRouteTableAssociationPublicSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PublicSubnet3
+      RouteTableId: !Ref RouteTablePublic
+
+# Associate the primary Private route table to the the first private subnet
+
+  SubnetRouteTableAssociationPrivateSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref RouteTablePrivate
+
+# Associate the Secondary Private route table to the the second private subnet
+
+  SubnetRouteTableAssociationPrivateSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !If [ CreatePerAzNatGateways , !Ref RouteTablePrivate2 , !Ref RouteTablePrivate ]
+
+# Associate the Secondary Private route table to the the third private subnet
+
+  SubnetRouteTableAssociationPrivateSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Properties:
+      SubnetId: !Ref PrivateSubnet3
+      RouteTableId: !If [ CreatePerAzNatGateways , !Ref RouteTablePrivate3 , !Ref RouteTablePrivate ]
+
+# Associate the primary IntraVpc route table to the the first private subnet
+
+  SubnetRouteTableAssociationIntraVpcSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      SubnetId: !Ref IntraVpcSubnet1
+      RouteTableId: !Ref RouteTableIntraVpc
+
+# Associate the Secondary IntraVpc route table to the the second private subnet
+
+  SubnetRouteTableAssociationIntraVpcSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      SubnetId: !Ref IntraVpcSubnet2
+      RouteTableId: !If [ CreateIntraVpcPerAzNatGatewaysRoutes , !Ref RouteTableIntraVpc2 , !Ref RouteTableIntraVpc ]
+
+
+# Associate the Secondary IntraVpc route table to the the third private subnet
+
+  SubnetRouteTableAssociationIntraVpcSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DeletionPolicy: Retain
+    Condition: CreateIntraVpc
+    Properties:
+      SubnetId: !Ref IntraVpcSubnet3
+      RouteTableId: !If [ CreateIntraVpcPerAzNatGatewaysRoutes , !Ref RouteTableIntraVpc3 , !Ref RouteTableIntraVpc ]
+
+# Associate mediait.ch DNS reslover rule if needed
+
+  MediaItResolverRuleAssociation:
+    Condition: AssociateMediaItResolverRule
+    Type: AWS::Route53Resolver::ResolverRuleAssociation
+    DeletionPolicy: Retain
+    Properties: 
+      Name: MediaItDnsRuleAssociation
+      ResolverRuleId: "rslvr-rr-19d7f32e7a0a41959"
+      VPCId: !Ref Vpc
+
+# Setup S3 VPC Endpoint if required
+                  
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    DeletionPolicy: Retain
+    Condition: CreateS3VpcEndpoint
+    Properties:    
+      RouteTableIds: !If [ CreatePerAzNatGateways , [!Ref RouteTablePrivate, !Ref RouteTablePrivate2, !Ref RouteTablePrivate3], [!Ref RouteTablePrivate] ]
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcId: !Ref Vpc
+
+Outputs:
+
+  Vpc:
+    Value: !Ref Vpc
+    Export:
+      Name: SC-VPC
+      
+  VpcCidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputVpcCidrBlock
+    Export:
+      Name: SC-VPC-CidrBlock
+
+  Az1:
+    Value: !FindInMap [RegionMap, !Ref "AWS::Region", Az1]
+    Export:
+      Name: SC-VPC-Az1
+
+  Az2:
+    Value: !FindInMap [RegionMap, !Ref "AWS::Region", Az2]
+    Export:
+      Name: SC-VPC-Az2
+
+  Az3:
+    Value: !FindInMap [RegionMap, !Ref "AWS::Region", Az3]
+    Export:
+      Name: SC-VPC-Az3
+  Azs:
+    Value: !Join [",", [!FindInMap [RegionMap, !Ref "AWS::Region", Az1], !FindInMap [RegionMap, !Ref "AWS::Region", Az2], !FindInMap [RegionMap, !Ref "AWS::Region", Az3]]]
+    Export:
+      Name: SC-VPC-Azs
+
+  PublicSubnet1:
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: SC-VPC-PublicSubnet1
+
+  PublicSubnet2:
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: SC-VPC-PublicSubnet2
+
+  PublicSubnet3:
+    Value: !Ref PublicSubnet3
+    Export:
+      Name: SC-VPC-PublicSubnet3
+  
+  PublicSubnets:
+    Value: !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+    Export:
+      Name: SC-VPC-PublicSubnets
+
+  PublicSubnet1CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz1Public
+    Export:
+      Name: SC-VPC-PublicSubnet1-CidrBlock
+
+  PublicSubnet2CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz2Public
+    Export:
+      Name: SC-VPC-PublicSubnet2-CidrBlock
+      
+  PublicSubnet3CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz3Public
+    Export:
+      Name: SC-VPC-PublicSubnet3-CidrBlock
+
+  PublicSubnetCidrBlocks:
+    Value: !Join [",", [!GetAtt VpcIpAddressesCustomResource.outputAz1Public, !GetAtt VpcIpAddressesCustomResource.outputAz2Public, !GetAtt VpcIpAddressesCustomResource.outputAz3Public]]
+    Export:
+      Name: SC-VPC-PublicSubnet-CidrBlocks
+
+  PrivateSubnet1:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: SC-VPC-PrivateSubnet1
+
+  PrivateSubnet2:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: SC-VPC-PrivateSubnet2
+
+  PrivateSubnet3:
+    Value: !Ref PrivateSubnet3
+    Export:
+      Name: SC-VPC-PrivateSubnet3
+
+  PrivateSubnets:
+    Value: !Join [",", [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3]]
+    Export:
+      Name: SC-VPC-PrivateSubnets
+
+  ScalablePlatformSubnet1:
+    Condition: CreateScalablePlatformSubnets
+    Value: !Ref ScalablePlatformSubnet1
+    Export:
+      Name: SC-VPC-ScalablePlatformSubnet1
+
+  ScalablePlatformSubnet2:
+    Condition: CreateScalablePlatformSubnets
+    Value: !Ref ScalablePlatformSubnet2
+    Export:
+      Name: SC-VPC-ScalablePlatformSubnet2
+
+  ScalablePlatformSubnet3:
+    Condition: CreateScalablePlatformSubnets
+    Value: !Ref ScalablePlatformSubnet3
+    Export:
+      Name: SC-VPC-ScalablePlatformSubnet3
+
+  ScalablePlatformSubnets:
+    Condition: CreateScalablePlatformSubnets
+    Value: !Join [",", [!Ref ScalablePlatformSubnet1, !Ref ScalablePlatformSubnet2, !Ref ScalablePlatformSubnet3]]
+    Export:
+      Name: SC-VPC-ScalablePlatformSubnets
+
+  PrivateSubnet1CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz1Private
+    Export:
+      Name: SC-VPC-PrivateSubnet1-CidrBlock
+      
+  PrivateSubnet2CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz2Private
+    Export:
+      Name: SC-VPC-PrivateSubnet2-CidrBlock
+      
+  PrivateSubnet3CidrBlock:
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz3Private
+    Export:
+      Name: SC-VPC-PrivateSubnet3-CidrBlock
+
+  PrivateSubnetCidrBlocks:
+    Value:
+        !Join [",", [!GetAtt VpcIpAddressesCustomResource.outputAz1Private, !GetAtt VpcIpAddressesCustomResource.outputAz2Private, !GetAtt VpcIpAddressesCustomResource.outputAz3Private]]
+    Export:
+      Name: SC-VPC-PrivateSubnet-CidrBlocks
+
+  IntraVpcSubnet1:
+    Condition: CreateIntraVpc
+    Value: !Ref IntraVpcSubnet1
+    Export:
+      Name: SC-VPC-IntraVpcSubnet1
+
+  IntraVpcSubnet2:
+    Condition: CreateIntraVpc
+    Value: !Ref IntraVpcSubnet2
+    Export:
+      Name: SC-VPC-IntraVpcSubnet2
+
+  IntraVpcSubnet3:
+    Condition: CreateIntraVpc
+    Value: !Ref IntraVpcSubnet3
+    Export:
+      Name: SC-VPC-IntraVpcSubnet3
+
+  IntraVpcSubnets:
+    Condition: CreateIntraVpc
+    Value: !Join [",", [!Ref IntraVpcSubnet1, !Ref IntraVpcSubnet2, !Ref IntraVpcSubnet3]]
+    Export:
+      Name: SC-VPC-IntraVpcSubnets   
+      
+  IntraVpcSubnet1CidrBlock:
+    Condition: CreateIntraVpc
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz1IntraVpc
+    Export:
+      Name: SC-VPC-IntraVpcSubnet1-CidrBlock
+      
+  IntraVpcSubnet2CidrBlock:
+    Condition: CreateIntraVpc
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz2IntraVpc
+    Export:
+      Name: SC-VPC-IntraVpcSubnet2-CidrBlock
+      
+  IntraVpcSubnet3CidrBlock:
+    Condition: CreateIntraVpc
+    Value: !GetAtt VpcIpAddressesCustomResource.outputAz3IntraVpc
+    Export:
+      Name: SC-VPC-IntraVpcSubnet3-CidrBlock
+
+  IntraVpcSubnetCidrBlocks:
+    Value: !Join [",", [!GetAtt VpcIpAddressesCustomResource.outputAz1IntraVpc, !GetAtt VpcIpAddressesCustomResource.outputAz2IntraVpc, !GetAtt VpcIpAddressesCustomResource.outputAz3IntraVpc]]
+    Export:
+      Name: SC-VPC-IntraVpcSubnet-CidrBlocks
+
+  NatGatewayEip1:
+    Value: !Ref NatGatewayEip
+    Export:
+      Name: SC-VPC-NatGatewayEip1
+
+  NatGatewayEip2:
+    Condition: CreatePerAzNatGateways
+    Value: !Ref NatGatewayEip2
+    Export:
+      Name: SC-VPC-NatGatewayEip2
+
+  NatGatewayEip3:
+    Condition: CreatePerAzNatGateways
+    Value: !Ref NatGatewayEip3
+    Export:
+      Name: SC-VPC-NatGatewayEip3
+
+  NatGatewayEips:
+    Value:
+      !If 
+      - CreatePerAzNatGateways
+      - !Join [",", [!Ref NatGatewayEip, !Ref NatGatewayEip2, !Ref NatGatewayEip3]]
+      - !Ref NatGatewayEip
+    Export:
+      Name: SC-VPC-NatGatewayEips
