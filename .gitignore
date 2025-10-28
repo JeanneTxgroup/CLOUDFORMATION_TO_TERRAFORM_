@@ -1,0 +1,16 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Dossiers générés automatiquement
+generated/
+modules/
+
+# Logs et fichiers temporaires
+*.log
+*.backup
+*.tmp
+
+
